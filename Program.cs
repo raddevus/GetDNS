@@ -21,6 +21,13 @@ class Program
                 }
                 
             }
+            IPInterfaceProperties properties = ni.GetIPProperties();
+            Console.WriteLine(ni.Description);
+            Console.WriteLine($"DNS suffix .............................. : {properties.DnsSuffix}");
+            if (!OperatingSystem.IsMacOS() ){
+                Console.WriteLine($"DNS enabled ............................. : {properties.IsDnsEnabled}");
+                Console.WriteLine($"Dynamically configured DNS .............. : {properties.IsDynamicDnsEnabled}");
+            }
         }
     }
 }
