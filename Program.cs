@@ -17,20 +17,41 @@ class Program
                 IPInterfaceProperties ipProps = ni.GetIPProperties();
                 foreach (IPAddress dns in ipProps.DnsAddresses)
                 {
-                    Console.WriteLine($"network interface: {ni.Name} - DNS Server: {dns}");
+                    Console.WriteLine($"interface: {ni.Name} - DNS Server: {dns} : dns suffix: {ipProps.DnsSuffix}");
                 }
                 
             }
-            IPInterfaceProperties properties = ni.GetIPProperties();
-            Console.WriteLine(ni.Description);
-            Console.WriteLine($"DNS suffix .............................. : {properties.DnsSuffix}");
-            if (!OperatingSystem.IsMacOS() ){
-		// Neither of the following OPs run on MacOS
-                Console.WriteLine($"DNS enabled ............................. : {properties.IsDnsEnabled}");
-		// However, this OP also doesn't  run on Linux
-		if (!OperatingSystem.IsLinux()){
-                	Console.WriteLine($"Dynamically configured DNS .............. : {properties.IsDynamicDnsEnabled}");
-		}
+        }
+        var routes = GetTraceRoute("lowes.com");
+        Console.WriteLine($"routes.Count : {routes.Count()}");
+        
+    }
+
+    // Got the following function 
+    // from : https://stackoverflow.com/questions/142614/traceroute-and-ping-in-c-sharp/45565253#45565253
+
+    public static IEnumerable<IPAddress> GetTraceRoute(string hostname)
+    {
+        // following are similar to the defaults in the "traceroute" unix command.
+        const int timeout = 10000;
+        const int maxTTL = 30;
+        
+        byte[] buffer = {65, 66, 67, 68, 69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86};
+        Console.WriteLine($"sending: {System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length)}");
+        using (var pinger = new Ping())
+        {
+            for (int ttl = 1; ttl <= maxTTL; ttl++)
+            {
+                PingOptions options = new PingOptions(ttl, true);
+                PingReply reply = pinger.Send(hostname, timeout, buffer, options);
+                Console.WriteLine($"reply: {reply.Address} - {System.Text.Encoding.UTF8.GetString(reply.Buffer, 0,reply.Buffer.Length)} ");
+                // we've found a route at this ttl
+                if (reply.Status == IPStatus.Success || reply.Status == IPStatus.TtlExpired)
+                    yield return reply.Address;
+
+                // if we reach a status other than expired or timed out, we're done searching or there has been an error
+                if (reply.Status != IPStatus.TtlExpired && reply.Status != IPStatus.TimedOut)
+                    break;
             }
         }
     }
