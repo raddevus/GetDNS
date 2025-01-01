@@ -25,8 +25,12 @@ class Program
             Console.WriteLine(ni.Description);
             Console.WriteLine($"DNS suffix .............................. : {properties.DnsSuffix}");
             if (!OperatingSystem.IsMacOS() ){
+		// Neither of the following OPs run on MacOS
                 Console.WriteLine($"DNS enabled ............................. : {properties.IsDnsEnabled}");
-                Console.WriteLine($"Dynamically configured DNS .............. : {properties.IsDynamicDnsEnabled}");
+		// However, this OP also doesn't  run on Linux
+		if (!OperatingSystem.IsLinux()){
+                	Console.WriteLine($"Dynamically configured DNS .............. : {properties.IsDynamicDnsEnabled}");
+		}
             }
         }
     }
